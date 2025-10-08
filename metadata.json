@@ -1,0 +1,5 @@
+{
+  "name": "Family Task Management App",
+  "description": "A collaborative task management application for families. Parents can assign tasks to children, and children can manage their own tasks, promoting responsibility and organization.",
+  "requestFramePermissions": []
+}

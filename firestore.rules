@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read and write their own profile
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Family members can read other family members' profiles
+    match /users/{userId} {
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.familyId == 
+        get(/databases/$(database)/documents/users/$(userId)).data.familyId;
+    }
+    
+    // Family documents - only family members can read
+    match /families/{familyId} {
+      allow read, write: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.familyId == familyId;
+    }
+    
+    // Tasks - family members can read all tasks in their family
+    match /tasks/{taskId} {
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.familyId == 
+        resource.data.familyId;
+      
+      // Only parents can create tasks
+      allow create: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'parent' &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.familyId == 
+        request.resource.data.familyId;
+      
+      // Only the assigned user can update their tasks
+      allow update: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.uid == 
+         resource.data.assignedTo ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.uid == 
+         resource.data.createdBy);
+      
+      // Only parents can delete tasks
+      allow delete: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'parent' &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.familyId == 
+        resource.data.familyId;
+    }
+  }
+}
+
