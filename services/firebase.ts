@@ -50,13 +50,25 @@ if (isFirebaseConfigured) {
       if (typeof window !== 'undefined') {
         const originalConsoleWarn = console.warn;
         console.warn = (...args) => {
-          // Filter out Firestore connection warnings
+          // Filter out Firestore connection warnings and 400 errors
           if (args[0] && typeof args[0] === 'string' && 
               (args[0].includes('WebChannelConnection') || 
-               args[0].includes('transport errored'))) {
+               args[0].includes('transport errored') ||
+               args[0].includes('@firebase/firestore'))) {
             return;
           }
           originalConsoleWarn.apply(console, args);
+        };
+        
+        // Also suppress 400 errors from Firestore
+        const originalConsoleError = console.error;
+        console.error = (...args) => {
+          if (args[0] && typeof args[0] === 'string' && 
+              args[0].includes('400 (Bad Request)') && 
+              args[0].includes('firestore.googleapis.com')) {
+            return;
+          }
+          originalConsoleError.apply(console, args);
         };
       }
     }
