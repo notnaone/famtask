@@ -15,9 +15,10 @@ Your Family Task Manager app has **automatic push notifications** that work on b
 ### For Best Results on Mobile:
 
 1. **Open the app in your mobile browser** (Chrome, Safari, etc.)
-2. **Look for the notification permission prompt** - It appears automatically when you log in
-3. **Click "Allow"** to enable notifications
-4. **Add to Home Screen** (optional but recommended):
+2. **Look for the blue notification banner** at the top of your dashboard
+3. **Tap "Enable"** on the banner to turn on notifications
+4. **Allow notifications** when your browser asks for permission
+5. **Add to Home Screen** (optional but recommended):
    - **iPhone**: Tap Share → Add to Home Screen
    - **Android**: Tap Menu (⋮) → Add to Home Screen
 
@@ -31,9 +32,10 @@ Your Family Task Manager app has **automatic push notifications** that work on b
 ## 💻 Desktop Setup (PC/Mac)
 
 1. **Open the app in your browser** (Chrome, Edge, Firefox, etc.)
-2. **Look for the notification permission prompt** in the address bar
-3. **Click "Allow"** to enable notifications
-4. **You're done!** - Notifications will appear on your desktop
+2. **Look for the blue notification banner** at the top of your dashboard
+3. **Click "Enable"** on the banner
+4. **Click "Allow"** when your browser asks for permission
+5. **You're done!** - Notifications will appear on your desktop
 
 ## 🔧 Troubleshooting
 

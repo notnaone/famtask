@@ -36,15 +36,10 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   const initializeNotifications = async () => {
     try {
-      // Only request permission if not already denied
-      if (Notification.permission === 'default') {
-        const granted = await notificationService.requestPermission();
-        setPermission(granted ? 'granted' : 'denied');
-      } else {
-        setPermission(Notification.permission);
-      }
+      // Just set the current permission state, don't auto-request
+      setPermission(Notification.permission);
 
-      // If permission is granted, get token
+      // If permission is already granted, get token
       if (Notification.permission === 'granted') {
         // Get FCM token
         const token = await notificationService.getToken();
@@ -75,6 +70,30 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const requestPermission = async (): Promise<boolean> => {
     const granted = await notificationService.requestPermission();
     setPermission(granted ? 'granted' : 'denied');
+    
+    if (granted && user) {
+      // Get FCM token
+      const token = await notificationService.getToken();
+      if (token) {
+        setFcmToken(token);
+        console.log('FCM Token obtained successfully');
+        
+        // Store FCM token in Firestore
+        try {
+          await storeFCMToken(user.uid, token);
+          console.log('FCM token stored successfully');
+        } catch (error) {
+          console.error('Failed to store FCM token:', error);
+        }
+      }
+
+      // Listen for foreground messages
+      notificationService.onMessage((payload) => {
+        console.log('Foreground message received:', payload);
+        showToast(payload.notification?.body || 'You have a new notification', 'info');
+      });
+    }
+    
     return granted;
   };
 
