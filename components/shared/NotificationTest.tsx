@@ -19,8 +19,16 @@ const NotificationTest: React.FC = () => {
     }
   };
 
+  // Show notification status even if not supported
   if (!isSupported) {
-    return null;
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+        <h3 className="font-semibold text-gray-800 mb-2">🔔 Notifications</h3>
+        <p className="text-sm text-gray-600">
+          Push notifications are not supported on this device/browser.
+        </p>
+      </div>
+    );
   }
 
   return (

@@ -36,16 +36,21 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   const initializeNotifications = async () => {
     try {
-      // Request permission
-      const granted = await notificationService.requestPermission();
-      if (granted) {
-        setPermission('granted');
-        
+      // Only request permission if not already denied
+      if (Notification.permission === 'default') {
+        const granted = await notificationService.requestPermission();
+        setPermission(granted ? 'granted' : 'denied');
+      } else {
+        setPermission(Notification.permission);
+      }
+
+      // If permission is granted, get token
+      if (Notification.permission === 'granted') {
         // Get FCM token
         const token = await notificationService.getToken();
         if (token) {
           setFcmToken(token);
-          console.log('FCM Token:', token);
+          console.log('FCM Token obtained successfully');
           
           // Store FCM token in Firestore
           try {
@@ -55,16 +60,13 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
             console.error('Failed to store FCM token:', error);
           }
         }
-      } else {
-        setPermission('denied');
-        showToast('Notifications are disabled. You can enable them in your browser settings.', 'warning');
-      }
 
-      // Listen for foreground messages
-      notificationService.onMessage((payload) => {
-        console.log('Foreground message received:', payload);
-        showToast(payload.notification?.body || 'You have a new notification', 'info');
-      });
+        // Listen for foreground messages
+        notificationService.onMessage((payload) => {
+          console.log('Foreground message received:', payload);
+          showToast(payload.notification?.body || 'You have a new notification', 'info');
+        });
+      }
     } catch (error) {
       console.error('Error initializing notifications:', error);
     }
