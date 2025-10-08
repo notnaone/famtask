@@ -6,6 +6,7 @@ import { markTasksAsSeen, setPlanTime, completeTask } from '../../services/fires
 import { useToast } from '../../context/ToastContext';
 import ChildTaskCard from './ChildTaskCard';
 import PlanTimeModal from './PlanTimeModal';
+import SettingsModal from '../shared/SettingsModal';
 import Header from '../shared/Header';
 import Button from '../shared/Button';
 
@@ -19,6 +20,7 @@ const ChildDashboard: React.FC<ChildDashboardProps> = ({ user, onLogout }) => {
   const { members, loading: membersLoading } = useFamilyMembers(user.familyId);
   const [planningTask, setPlanningTask] = useState<Task | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { showToast } = useToast();
   
   const loading = tasksLoading || membersLoading;
@@ -56,7 +58,7 @@ const ChildDashboard: React.FC<ChildDashboardProps> = ({ user, onLogout }) => {
 
   return (
     <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden">
-      <Header title="My Tasks" onLogout={onLogout} />
+      <Header title="My Tasks" onLogout={onLogout} onSettings={() => setIsSettingsOpen(true)} />
 
       <div className="p-3 sm:p-4 space-y-4">
         <div>
@@ -111,6 +113,7 @@ const ChildDashboard: React.FC<ChildDashboardProps> = ({ user, onLogout }) => {
           onSave={handleSetPlanTime}
         />
       )}
+      {isSettingsOpen && <SettingsModal user={user} onClose={() => setIsSettingsOpen(false)} onLogout={onLogout} />}
     </div>
   );
 };

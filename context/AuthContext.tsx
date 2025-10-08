@@ -8,6 +8,7 @@ interface AuthContextType {
   user: FirebaseUser | null;
   userProfile: UserProfile | null;
   loading: boolean;
+  refreshUserProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,29 +20,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (!auth) {
+        console.warn("Firebase auth not available, setting loading to false");
         setLoading(false);
         return;
     }
+    
+    console.log("Setting up auth state listener...");
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log("Auth state changed:", firebaseUser ? "User logged in" : "User logged out");
+      
       if (firebaseUser) {
         setUser(firebaseUser);
-        const profile = await getUserProfile(firebaseUser.uid);
-        setUserProfile(profile);
+        try {
+          const profile = await getUserProfile(firebaseUser.uid);
+          setUserProfile(profile);
+          console.log("User profile loaded:", profile);
+        } catch (error) {
+          console.error("Failed to load user profile:", error);
+          setUserProfile(null);
+        }
       } else {
         setUser(null);
         setUserProfile(null);
       }
       setLoading(false);
+    }, (error) => {
+      console.error("Auth state change error:", error);
+      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log("Cleaning up auth listener");
+      unsubscribe();
+    };
   }, []);
 
-  const value = { user, userProfile, loading };
+  const refreshUserProfile = async () => {
+    if (user) {
+      const profile = await getUserProfile(user.uid);
+      setUserProfile(profile);
+    }
+  };
+
+  const value = { user, userProfile, loading, refreshUserProfile };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

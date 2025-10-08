@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read and write their own profile
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Family members can read other family members' profiles
+      // Allow read if the current user is authenticated and has a familyId
+      // This is a simplified rule that should work with queries
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.familyId != null;
+    }
+    
+    // Family documents - only family members can read
+    match /families/{familyId} {
+      allow read, write: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.familyId == familyId;
+    }
+    
+    // Tasks - family members can read all tasks in their family
+    match /tasks/{taskId} {
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.familyId == 
+        resource.data.familyId;
+      
+      // Only parents can create tasks
+      allow create: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'parent' &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.familyId == 
+        request.resource.data.familyId;
+      
+      // Only the assigned user can update their tasks
+      allow update: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.uid == 
+         resource.data.assignedTo ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.uid == 
+         resource.data.createdBy);
+      
+      // Only parents can delete tasks
+      allow delete: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'parent' &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.familyId == 
+        resource.data.familyId;
+    }
+    
+    // FCM Tokens - users can manage their own tokens
+    match /fcmTokens/{tokenId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Notification logs - for debugging (optional)
+    match /notifications/{notificationId} {
+      allow read, write: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+  }
+}

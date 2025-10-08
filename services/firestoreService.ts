@@ -154,3 +154,13 @@ export const markTasksAsSeen = async (tasks: Task[], userId: string): Promise<vo
 export const completeTask = (taskId: string) => updateTask(taskId, { status: 'completed', completedAt: Timestamp.now() });
 
 export const setPlanTime = (taskId: string, time: Date) => updateTask(taskId, { status: 'planned', plannedCompletionTime: Timestamp.fromDate(time) });
+
+// Get family invite code
+export const getFamilyInviteCode = async (familyId: string): Promise<string | null> => {
+    const db = ensureDb();
+    const familyDoc = await getDoc(doc(db, 'families', familyId));
+    if (familyDoc.exists()) {
+        return familyDoc.data().inviteCode || null;
+    }
+    return null;
+};

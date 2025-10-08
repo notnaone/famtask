@@ -6,6 +6,7 @@ import { createTask } from '../../services/firestoreService';
 import { useToast } from '../../context/ToastContext';
 import ParentTaskCard from './ParentTaskCard';
 import TaskCreationModal from './TaskCreationModal';
+import SettingsModal from '../shared/SettingsModal';
 import Header from '../shared/Header';
 import { PlusIcon } from '../shared/Icons';
 
@@ -16,6 +17,7 @@ interface ParentDashboardProps {
 
 const ParentDashboard: React.FC<ParentDashboardProps> = ({ user, onLogout }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { tasks, loading: tasksLoading } = useTasks(user.familyId);
   const { members, loading: membersLoading } = useFamilyMembers(user.familyId);
   const { showToast } = useToast();
@@ -44,7 +46,7 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({ user, onLogout }) => 
   
   return (
     <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden">
-      <Header title="Family Tasks" onLogout={onLogout} />
+      <Header title="Family Tasks" onLogout={onLogout} onSettings={() => setIsSettingsOpen(true)} />
       
       <div className="p-3 sm:p-4 space-y-4">
         <div className="flex justify-between items-center">
@@ -84,6 +86,7 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({ user, onLogout }) => 
       </div>
 
       {isModalOpen && <TaskCreationModal onClose={() => setIsModalOpen(false)} onCreateTask={handleCreateTask} />}
+      {isSettingsOpen && <SettingsModal user={user} onClose={() => setIsSettingsOpen(false)} onLogout={onLogout} />}
     </div>
   );
 };

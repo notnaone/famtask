@@ -16,6 +16,13 @@ export function useFamilyMembers(familyId: string | null) {
     }
 
     setLoading(true);
+    
+    if (!db) {
+      setError(new Error("Firebase not configured"));
+      setLoading(false);
+      return;
+    }
+
     const membersQuery = query(
       collection(db, 'users'),
       where('familyId', '==', familyId)

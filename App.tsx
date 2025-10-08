@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from './context/AuthContext';
+import ErrorBoundary from './components/shared/ErrorBoundary';
 import WelcomeScreen from './components/auth/WelcomeScreen';
 import RoleSelection from './components/auth/RoleSelection';
 import FamilySetup from './components/auth/FamilySetup';
@@ -15,9 +16,18 @@ const FirebaseNotConfiguredMessage: React.FC = () => (
             <p className="text-gray-700 mb-2">
                 This application requires a connection to a Firebase project to function.
             </p>
-            <p className="text-gray-600 mb-6">
-                Please open the file <code className="bg-gray-200 text-sm p-1 rounded">src/services/firebase.ts</code> and replace the placeholder configuration with your own Firebase project credentials.
+            <p className="text-gray-600 mb-4">
+                Please check your environment variables or Firebase configuration.
             </p>
+            <div className="bg-gray-100 p-4 rounded-lg mb-4 text-left text-sm">
+                <p className="font-semibold mb-2">Required environment variables:</p>
+                <ul className="space-y-1 text-gray-600">
+                    <li>• VITE_FIREBASE_API_KEY</li>
+                    <li>• VITE_FIREBASE_AUTH_DOMAIN</li>
+                    <li>• VITE_FIREBASE_PROJECT_ID</li>
+                    <li>• VITE_FIREBASE_APP_ID</li>
+                </ul>
+            </div>
             <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
                 Go to Firebase Console to get your credentials
             </a>
@@ -25,12 +35,8 @@ const FirebaseNotConfiguredMessage: React.FC = () => (
     </div>
 );
 
-
-const App: React.FC = () => {
-  if (!isFirebaseConfigured) {
-    return <FirebaseNotConfiguredMessage />;
-  }
-
+// This component will only be rendered when Firebase is configured and within AuthProvider
+const AppContent: React.FC = () => {
   const { user, userProfile, loading } = useAuth();
 
   const handleLogout = () => {
@@ -73,6 +79,24 @@ const App: React.FC = () => {
         {renderContent()}
       </div>
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  // Check Firebase configuration first
+  if (!isFirebaseConfigured) {
+    console.log("Firebase not configured, showing configuration message");
+    return <FirebaseNotConfiguredMessage />;
+  }
+
+  console.log("Firebase configured, rendering app content");
+  
+  // Only render the app content when Firebase is configured
+  // The AuthProvider is already wrapping this in index.tsx
+  return (
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
   );
 };
 

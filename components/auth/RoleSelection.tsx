@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { UserProfile } from '../../types';
 import { ParentIcon, ChildIcon } from '../shared/Icons';
 import { updateUserRole } from '../../services/firestoreService';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 
 interface RoleSelectionProps {
   user: UserProfile | null;
@@ -9,15 +11,19 @@ interface RoleSelectionProps {
 
 const RoleSelection: React.FC<RoleSelectionProps> = ({ user }) => {
   const [loading, setLoading] = useState(false);
+  const { refreshUserProfile } = useAuth();
+  const { showToast } = useToast();
 
   const handleSelect = async (role: 'parent' | 'child') => {
     if (!user || loading) return;
     setLoading(true);
     try {
       await updateUserRole(user.uid, role);
-      // The AuthProvider will automatically pick up the change and move to the next screen.
+      await refreshUserProfile(); // Refresh the user profile to get the updated role
+      showToast(`Role set to ${role}!`, 'success');
     } catch (error) {
         console.error("Failed to update role:", error);
+        showToast("Failed to update role. Please try again.", 'error');
         setLoading(false);
     }
   };

@@ -18,6 +18,32 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      build: {
+        outDir: 'dist',
+        assetsDir: 'assets',
+        sourcemap: false,
+        chunkSizeWarningLimit: 1000,
+        rollupOptions: {
+          output: {
+            manualChunks: (id) => {
+              // React and React DOM
+              if (id.includes('react') || id.includes('react-dom')) {
+                return 'react-vendor';
+              }
+              
+              // All Firebase services in one chunk to avoid initialization issues
+              if (id.includes('firebase/')) {
+                return 'firebase';
+              }
+              
+              // Node modules that aren't Firebase or React
+              if (id.includes('node_modules')) {
+                return 'vendor';
+              }
+            }
+          }
+        }
       }
     };
 });

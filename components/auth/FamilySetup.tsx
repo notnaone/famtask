@@ -3,6 +3,8 @@ import { UserProfile } from '../../types';
 import Button from '../shared/Button';
 import Input from '../shared/Input';
 import { createFamily, joinFamily } from '../../services/firestoreService';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 
 interface FamilySetupProps {
   user: UserProfile | null;
@@ -11,9 +13,10 @@ interface FamilySetupProps {
 const FamilySetup: React.FC<FamilySetupProps> = ({ user }) => {
   const [familyCode, setFamilyCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showCreateFamily, setShowCreateFamily] = useState(user?.role === 'parent');
   const [newFamilyInfo, setNewFamilyInfo] = useState<{id: string, code: string} | null>(null);
+  const { refreshUserProfile } = useAuth();
+  const { showToast } = useToast();
 
   if (!user) return null;
 
@@ -21,24 +24,39 @@ const FamilySetup: React.FC<FamilySetupProps> = ({ user }) => {
     e.preventDefault();
     if (!familyCode) return;
     setLoading(true);
-    setError(null);
     try {
       await joinFamily(familyCode, user.uid, user.role!);
-      // AuthProvider will detect the familyId change and rerender App
+      await refreshUserProfile(); // Refresh user profile to get updated familyId
+      showToast('Successfully joined family!', 'success');
     } catch (err: any) {
-      setError(err.message);
+      console.error('Join family error:', err);
+      let errorMessage = 'Failed to join family. Please try again.';
+      if (err.message?.includes('Invalid family code')) {
+        errorMessage = 'Invalid family code. Please check and try again.';
+      } else if (err.message?.includes('permission')) {
+        errorMessage = 'Permission denied. Please check your Firebase configuration.';
+      }
+      showToast(errorMessage, 'error');
       setLoading(false);
     }
   };
 
   const handleCreate = async () => {
     setLoading(true);
-    setError(null);
     try {
         const { familyId, inviteCode } = await createFamily(user.uid);
+        await refreshUserProfile(); // Refresh user profile to get updated familyId
         setNewFamilyInfo({ id: familyId, code: inviteCode });
+        showToast('Family created successfully!', 'success');
     } catch (err: any) {
-        setError(err.message);
+        console.error('Create family error:', err);
+        let errorMessage = 'Failed to create family. Please try again.';
+        if (err.message?.includes('permission')) {
+          errorMessage = 'Permission denied. Please check your Firebase Security Rules.';
+        } else if (err.message?.includes('network')) {
+          errorMessage = 'Network error. Please check your internet connection.';
+        }
+        showToast(errorMessage, 'error');
         setLoading(false);
     }
   }
@@ -60,7 +78,6 @@ const FamilySetup: React.FC<FamilySetupProps> = ({ user }) => {
     return (
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm">
         <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Set up your family</h2>
-        {error && <p className="bg-red-100 text-danger text-sm p-3 rounded-md mb-4 text-center">{error}</p>}
         
         {showCreateFamily ? (
           <div className="text-center p-4 border border-dashed rounded-lg">
@@ -93,7 +110,6 @@ const FamilySetup: React.FC<FamilySetupProps> = ({ user }) => {
     <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm">
       <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">Join Your Family</h2>
       <p className="text-gray-600 mb-6 text-center">Ask your parent for the family code.</p>
-      {error && <p className="bg-red-100 text-danger text-sm p-3 rounded-md mb-4 text-center">{error}</p>}
       <form onSubmit={handleJoin} className="space-y-4">
         <Input
           label="Family Code"

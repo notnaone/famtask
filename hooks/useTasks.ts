@@ -6,8 +6,8 @@ import { Task, TaskDocument } from '../types';
 const convertTimestampToDate = (docData: TaskDocument): Omit<Task, 'id'> => {
     return {
         ...docData,
-        createdAt: (docData.createdAt as Timestamp).toDate(),
-        lastModified: (docData.lastModified as Timestamp).toDate(),
+        createdAt: docData.createdAt ? (docData.createdAt as Timestamp).toDate() : new Date(),
+        lastModified: docData.lastModified ? (docData.lastModified as Timestamp).toDate() : new Date(),
         seenAt: docData.seenAt ? (docData.seenAt as Timestamp).toDate() : null,
         plannedCompletionTime: docData.plannedCompletionTime ? (docData.plannedCompletionTime as Timestamp).toDate() : null,
         completedAt: docData.completedAt ? (docData.completedAt as Timestamp).toDate() : null,
@@ -29,6 +29,13 @@ export function useTasks(familyId: string | null) {
     }
 
     setLoading(true);
+    
+    if (!db) {
+      setError(new Error("Firebase not configured"));
+      setLoading(false);
+      return;
+    }
+
     const tasksQuery = query(
         collection(db, 'tasks'), 
         where('familyId', '==', familyId),

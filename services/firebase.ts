@@ -1,6 +1,7 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
+import { getMessaging, Messaging, isSupported } from 'firebase/messaging';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -13,23 +14,72 @@ const firebaseConfig = {
   measurementId: "G-KNF9ZJBVB8"
 };
 
-// Check if the config is still the placeholder
-export const isFirebaseConfigured = firebaseConfig.apiKey !== "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+// Check if the config is properly configured (not placeholder values)
+export const isFirebaseConfigured = !!(
+  firebaseConfig.apiKey && 
+  firebaseConfig.apiKey !== "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" &&
+  firebaseConfig.projectId && 
+  firebaseConfig.authDomain &&
+  firebaseConfig.appId
+);
 
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
+let messaging: Messaging | null = null;
 let googleProvider: GoogleAuthProvider | null = null;
+let initializationError: Error | null = null;
 
 if (isFirebaseConfigured) {
   try {
+    console.log("Initializing Firebase...", { 
+      projectId: firebaseConfig.projectId,
+      authDomain: firebaseConfig.authDomain 
+    });
+    
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
     googleProvider = new GoogleAuthProvider();
+    
+    console.log("Firebase initialized successfully");
+    
+    // Set up error handling for Firestore
+    if (db) {
+      // Suppress Firestore connection warnings in production
+      if (typeof window !== 'undefined') {
+        const originalConsoleWarn = console.warn;
+        console.warn = (...args) => {
+          // Filter out Firestore connection warnings
+          if (args[0] && typeof args[0] === 'string' && 
+              (args[0].includes('WebChannelConnection') || 
+               args[0].includes('transport errored'))) {
+            return;
+          }
+          originalConsoleWarn.apply(console, args);
+        };
+      }
+    }
+    
+    // Initialize messaging if supported (temporarily disabled to prevent errors)
+    // if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    //   isSupported().then((supported) => {
+    //     if (supported) {
+    //       messaging = getMessaging(app);
+    //       console.log("Firebase messaging initialized");
+    //     } else {
+    //       console.log("Firebase messaging not supported in this environment");
+    //     }
+    //   }).catch((error) => {
+    //     console.warn("Firebase messaging initialization failed:", error);
+    //   });
+    // }
   } catch (error) {
+    initializationError = error as Error;
     console.error("Firebase initialization failed:", error);
   }
+} else {
+  console.warn("Firebase not configured. Please check your environment variables or firebase.ts configuration.");
 }
 
-export { app, auth, db, googleProvider };
+export { app, auth, db, messaging, googleProvider };
