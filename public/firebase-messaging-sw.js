@@ -17,8 +17,8 @@ firebase.initializeApp(firebaseConfig);
 // Initialize Firebase Cloud Messaging
 const messaging = firebase.messaging();
 
-// Note: VAPID key is now set in the main app, not in the service worker
-// The service worker will receive the VAPID key from the main app
+// Set VAPID key for web push (using the correct API)
+messaging.usePublicVapidKey('BNQXcDushz9xLPtdMsy-pZcIlEzcKlLyl2v9r2YWuymFBpfjmWNarDlMJN9noTJukT2TIGGsuKHzxW-29IVxnmk');
 
 // Handle background messages
 messaging.onBackgroundMessage((payload) => {

@@ -8,6 +8,7 @@ import ChildTaskCard from './ChildTaskCard';
 import PlanTimeModal from './PlanTimeModal';
 import SettingsModal from '../shared/SettingsModal';
 import Header from '../shared/Header';
+import NotificationTest from '../shared/NotificationTest';
 import Button from '../shared/Button';
 
 interface ChildDashboardProps {
@@ -61,6 +62,8 @@ const ChildDashboard: React.FC<ChildDashboardProps> = ({ user, onLogout }) => {
       <Header title="My Tasks" onLogout={onLogout} onSettings={() => setIsSettingsOpen(true)} />
 
       <div className="p-3 sm:p-4 space-y-4">
+        <NotificationTest />
+        
         <div>
           <h3 className="font-semibold text-lg text-gray-700 mb-2">Your Tasks ({activeTasks.length})</h3>
           {loading ? (

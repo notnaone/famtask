@@ -8,6 +8,7 @@ import ParentTaskCard from './ParentTaskCard';
 import TaskCreationModal from './TaskCreationModal';
 import SettingsModal from '../shared/SettingsModal';
 import Header from '../shared/Header';
+import NotificationTest from '../shared/NotificationTest';
 import { PlusIcon } from '../shared/Icons';
 
 interface ParentDashboardProps {
@@ -49,6 +50,8 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({ user, onLogout }) => 
       <Header title="Family Tasks" onLogout={onLogout} onSettings={() => setIsSettingsOpen(true)} />
       
       <div className="p-3 sm:p-4 space-y-4">
+        <NotificationTest />
+        
         <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold">Child: {child?.displayName || '...'}</h2>
             <button 

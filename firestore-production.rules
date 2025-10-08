@@ -13,9 +13,19 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.familyId != null;
     }
     
-    // Family documents - only family members can read
+    // Family documents - allow authenticated users to create families
     match /families/{familyId} {
-      allow read, write: if request.auth != null && 
+      // Allow authenticated users to create families (for new users)
+      allow create: if request.auth != null;
+      
+      // Allow authenticated users to read families (for joining with invite codes)
+      allow read: if request.auth != null;
+      
+      // Allow authenticated users to update families (for joining with invite codes)
+      allow update: if request.auth != null;
+      
+      // Allow family members to delete their family
+      allow delete: if request.auth != null && 
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.familyId == familyId;
     }

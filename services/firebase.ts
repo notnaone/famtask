@@ -73,19 +73,19 @@ if (isFirebaseConfigured) {
       }
     }
     
-    // Initialize messaging if supported (temporarily disabled to prevent errors)
-    // if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-    //   isSupported().then((supported) => {
-    //     if (supported) {
-    //       messaging = getMessaging(app);
-    //       console.log("Firebase messaging initialized");
-    //     } else {
-    //       console.log("Firebase messaging not supported in this environment");
-    //     }
-    //   }).catch((error) => {
-    //     console.warn("Firebase messaging initialization failed:", error);
-    //   });
-    // }
+    // Initialize messaging if supported
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      isSupported().then((supported) => {
+        if (supported) {
+          messaging = getMessaging(app);
+          console.log("Firebase messaging initialized");
+        } else {
+          console.log("Firebase messaging not supported in this environment");
+        }
+      }).catch((error) => {
+        console.warn("Firebase messaging initialization failed:", error);
+      });
+    }
   } catch (error) {
     initializationError = error as Error;
     console.error("Firebase initialization failed:", error);
